@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, Mail, MapPin, Phone, Send, X } from 'lucide-react';
 import { services } from '../data';
 
@@ -9,7 +9,50 @@ const contactData = [
   { label: 'Endereço', value: 'Floresta do Araguaia, Pará', href: 'https://www.google.com/maps/search/?api=1&query=Rua+04+Floresta+do+Araguaia+PA+68543-000', icon: MapPin },
 ];
 
-export function Services() { return <section id="servicos" className="section services"><div className="section-head reveal"><div><div className="section-kicker"><span>03</span><b>O que fazemos</b></div><h2>Forma, função<br /><em>e atitude.</em></h2></div><p>Materiais de alta performance e mão de obra que entende que o detalhe é o todo.</p></div><div className="service-grid">{services.map((service) => <article className="service-card reveal" key={service.number}><div className="service-top"><span>{service.number}</span><b>{service.icon}</b></div><h3>{service.title}</h3><p>{service.text}</p><span className="service-arrow">↗</span></article>)}</div></section> }
+export function Services() {
+  const cardRefs = useRef([]);
+  const showcaseRef = useRef(null);
+
+  useEffect(() => {
+    const showcase = showcaseRef.current;
+    if (!showcase) return undefined;
+    const duration = 48000;
+    const pathX = [0, 1, 2, 2, 1, 0];
+    const pathY = [0, 0, 0, 1, 1, 1];
+    let frameId;
+    let startTime;
+
+    const animate = (timestamp) => {
+      if (startTime === undefined) startTime = timestamp;
+      const progress = ((timestamp - startTime) % duration) / duration;
+      const gap = 18;
+      const columnStep = (showcase.clientWidth + gap) / 3;
+      const rowStep = (showcase.clientHeight + gap) / 2;
+
+      cardRefs.current.forEach((card, index) => {
+        if (!card) return;
+        const position = ((progress + index / 6) % 1) * 6;
+        const segment = Math.floor(position);
+        const fraction = position - segment;
+        const nextSegment = (segment + 1) % 6;
+        const x = pathX[segment] + (pathX[nextSegment] - pathX[segment]) * fraction;
+        const y = pathY[segment] + (pathY[nextSegment] - pathY[segment]) * fraction;
+        card.style.left = `${x * columnStep}px`;
+        card.style.top = `${y * rowStep}px`;
+      });
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
+  return <section id="servicos" className="section services">
+    <div className="services-signal" aria-hidden="true"><i /><i /><i /><i /></div>
+    <div className="section-head reveal"><div><div className="section-kicker"><span>03</span><b>O que fazemos</b></div><h2>Forma, função<br /><em>e atitude.</em></h2></div><p>Materiais de alta performance e mão de obra que entende que o detalhe é o todo.</p></div>
+    <div ref={showcaseRef} className="service-grid service-showcase">{services.map((service, index) => <article ref={(card) => { cardRefs.current[index] = card; }} className="service-card reveal" data-index={index + 1} key={service.number}><h3>{service.title}</h3><p>{service.text}</p></article>)}</div>
+  </section>
+}
 
 export function Contact() { const [form, setForm] = useState({}); const [sent, setSent] = useState(false); const [errors, setErrors] = useState({}); const submit = (event) => { event.preventDefault(); const required = ['name', 'phone', 'email', 'vehicle', 'message']; const next = Object.fromEntries(required.filter((key) => !form[key]?.trim()).map((key) => [key, 'Preencha este campo'])); setErrors(next); if (!Object.keys(next).length) { const text = encodeURIComponent(`Olá, Arcanjo Películas!\n\nNome: ${form.name}\nTelefone: ${form.phone}\nE-mail: ${form.email}\nVeículo: ${form.vehicle}\nProjeto: ${form.message}`); window.open(`https://wa.me/5563992565126?text=${text}`, '_blank', 'noopener,noreferrer'); setSent(true); } }; const change = (event) => { setForm({ ...form, [event.target.name]: event.target.value }); setErrors({ ...errors, [event.target.name]: '' }); }; return <section id="contato" className="section contact"><div className="contact-intro reveal"><div className="section-kicker"><span>06</span><b>Seu briefing</b></div><h2>Seu próximo<br /><em>projeto começa aqui.</em></h2><p>Conte para a gente o que você imaginou. Ao enviar, seu briefing será montado para o WhatsApp da equipe.</p></div><form className="contact-form reveal reveal-delay" onSubmit={submit} noValidate>{sent ? <div className="success"><span><Check /></span><h3>Briefing preparado.</h3><p>Sua mensagem foi aberta no WhatsApp para envio.</p><button type="button" className="text-link" onClick={() => { setSent(false); setForm({}); }}>Enviar outro briefing</button></div> : <><div className="form-row"><label>Seu nome<input name="name" value={form.name || ''} onChange={change} placeholder="Como podemos chamar você?" />{errors.name && <small>{errors.name}</small>}</label><label>Telefone<input name="phone" value={form.phone || ''} onChange={change} placeholder="(00) 00000-0000" />{errors.phone && <small>{errors.phone}</small>}</label></div><div className="form-row"><label>E-mail<input name="email" type="email" value={form.email || ''} onChange={change} placeholder="voce@email.com" />{errors.email && <small>{errors.email}</small>}</label><label>Veículo<input name="vehicle" value={form.vehicle || ''} onChange={change} placeholder="Marca e modelo" />{errors.vehicle && <small>{errors.vehicle}</small>}</label></div><label>Fale sobre o projeto<textarea name="message" value={form.message || ''} onChange={change} placeholder="Cor, acabamento, referências..." rows="4" />{errors.message && <small>{errors.message}</small>}</label><button className="button button-gold submit" type="submit"><span>Enviar briefing</span><Send size={16} /></button></>}</form></section> }
 

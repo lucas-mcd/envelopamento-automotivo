@@ -6,10 +6,62 @@ export function Hero({ go }) { const scanRef = useRef(null); useEffect(() => { c
 
 export function About({ go }) { return <section id="sobre" className="section about"><div className="section-kicker reveal"><span>02</span><b>O manifesto</b></div><div className="about-layout"><div className="about-title reveal"><p className="eyebrow">Arcanjo Películas</p><h2>Não é só<br /><em>aparência.</em></h2></div><div className="about-copy reveal reveal-delay"><p className="large-copy">É a sensação de entrar no carro e saber que ele não se parece com nenhum outro.</p><p>Unimos técnica, repertório e obsessão por detalhe para transformar veículos em extensões de quem os dirige. Cada aplicação é um projeto autoral, feito para durar na memória.</p><button className="text-link" onClick={() => go('contato')}>Comece sua transformação <ArrowRight size={16} /></button></div><div className="manifesto-card reveal" tabIndex="0"><div className="manifesto-flip"><div className="manifesto-face manifesto-front"><span className="manifesto-label">Arcanjo / 02</span><div className="logo-glow" /><img src="/logo.webp" alt="Logo Arcanjo Películas" /><span className="manifesto-hint">Passe para revelar</span></div><div className="manifesto-face manifesto-back"><span className="manifesto-label">A sua vez</span><strong>Pronto para<br /><em>transformar?</em></strong><p>Seu projeto começa com uma boa conversa.</p><button className="manifesto-cta" onClick={() => go('contato')}>Falar com a equipe <ArrowRight size={16} /></button></div></div></div></div></section> }
 
-export function WorkCarousel() { const cardColors = ['218,164,65', '244,201,107', '190,139,45', '255,226,157', '218,164,65', '174,122,31', '244,201,107', '190,139,45', '255,226,157', '218,164,65']; return <section id="trabalhos" className="section works"><div className="section-head reveal"><div><div className="section-kicker"><span>04</span><b>Projetos em destaque</b></div><h2>Feito para<br /><em>ser visto.</em></h2></div><p>Uma seleção de transformações que carregam a nossa assinatura.</p></div><div className="cylinder-stage reveal" aria-label="Projetos em destaque em carrossel 3D contínuo"><div className="cylinder-inner" style={{ '--quantity': images.length }}>{images.map((src, index) => <button className="cylinder-card" key={src} style={{ '--index': index, '--color-card': cardColors[index] }}><img src={src} alt={`Projeto ${index + 1}`} loading="lazy" /></button>)}</div></div></section> }
+export function WorkCarousel() {
+  const cardColors = ['218,164,65', '244,201,107', '190,139,45', '255,226,157', '218,164,65', '174,122,31', '244,201,107', '190,139,45', '255,226,157', '218,164,65'];
+  const cylinderRef = useRef(null);
+
+  useEffect(() => {
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800;
+    if (!cylinderRef.current || shouldReduceMotion) return undefined;
+
+    let rafId = null;
+    let startTime = null;
+    const duration = 24000;
+
+    const animate = (timestamp) => {
+      if (startTime === null) startTime = timestamp;
+      const elapsed = (timestamp - startTime) % duration;
+      const angle = (elapsed / duration) * 360;
+      cylinderRef.current.style.transform = `perspective(1800px) rotateX(-10deg) rotateY(${angle}deg)`;
+      rafId = window.requestAnimationFrame(animate);
+    };
+
+    rafId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(rafId);
+  }, []);
+
+  return <section id="trabalhos" className="section works"><div className="section-head reveal"><div><div className="section-kicker"><span>04</span><b>Projetos em destaque</b></div><h2>Feito para<br /><em>ser visto.</em></h2></div><p>Uma seleção de transformações que carregam a nossa assinatura.</p></div><div className="cylinder-stage reveal" aria-label="Projetos em destaque em carrossel 3D contínuo"><div ref={cylinderRef} className="cylinder-inner" style={{ '--quantity': images.length }}>{images.map((src, index) => <button className="cylinder-card" key={src} type="button" disabled aria-label={`Projeto ${index + 1}`} tabIndex={-1} style={{ '--index': index, '--color-card': cardColors[index] }}><img src={src} alt={`Projeto ${index + 1}`} loading="lazy" /></button>)}</div></div></section>;
+}
 
 export function Gallery({ onOpen }) { return <section id="galeria" className="section gallery"><div className="section-head reveal"><div><div className="section-kicker"><span>05</span><b>Arquivo visual</b></div><h2>Detalhes que<br /><em>falam alto.</em></h2></div><p>Texturas, reflexos e recortes. A matéria-prima da nossa linguagem.</p></div><div className="gallery-grid">{images.slice(2, 8).map((src, index) => <button className={`gallery-item item-${index + 1} reveal`} key={src} onClick={() => onOpen(src)}><img src={src} alt={`Detalhe de projeto ${index + 3}`} loading="lazy" /><span><Maximize2 size={16} /> ampliar</span></button>)}</div></section> }
 
-export function SecondCarousel({ onOpen, paused }) { const rail = [...images, ...images]; return <section id="curadoria" className="marquee-section"><div className="marquee-top"><span><Sparkles size={14} /> Curadoria Arcanjo</span><b>Movimento contínuo</b></div><div className="strip-window"><div className={`strip ${paused ? 'is-paused' : ''}`}>{rail.map((src, i) => <button className="strip-card" key={`${src}-${i}`} onClick={() => onOpen(src)} aria-label={`Ampliar projeto ${(i % images.length) + 1}`}><img src={src} alt="Projeto de acabamento automotivo" loading="lazy" /></button>)}</div></div></section> }
+export function SecondCarousel({ onOpen, paused }) {
+  const rail = [...images, ...images];
+  const stripRef = useRef(null);
+
+  useEffect(() => {
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800;
+    if (!stripRef.current || shouldReduceMotion || paused) return undefined;
+
+    let rafId = null;
+    let startTime = null;
+    const duration = 28000;
+
+    const animate = (timestamp) => {
+      if (startTime === null) startTime = timestamp;
+      const elapsed = (timestamp - startTime) % duration;
+      const progress = elapsed / duration;
+      const totalWidth = stripRef.current.scrollWidth / 2;
+      const offset = totalWidth * progress;
+      stripRef.current.style.transform = `translate3d(-${offset}px, 0, 0)`;
+      rafId = window.requestAnimationFrame(animate);
+    };
+
+    rafId = window.requestAnimationFrame(animate);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [paused]);
+
+  return <section id="curadoria" className="marquee-section"><div className="marquee-top"><span><Sparkles size={14} /> Curadoria Arcanjo</span><b>Movimento contínuo</b></div><div className="strip-window"><div ref={stripRef} className={`strip ${paused ? 'is-paused' : ''}`}>{rail.map((src, i) => <button className="strip-card" key={`${src}-${i}`} onClick={() => onOpen(src)} aria-label={`Ampliar projeto ${(i % images.length) + 1}`}><img src={src} alt="Projeto de acabamento automotivo" loading="lazy" /></button>)}</div></div></section>;
+}
 
 export function ClickSpark() { const [sparks, setSparks] = useState([]); useEffect(() => { const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800; if (isTouchDevice()) return undefined; const handler = (event) => { const id = Date.now() + Math.random(); setSparks((items) => [...items.slice(-12), { id, x: event.clientX, y: event.clientY }]); setTimeout(() => setSparks((items) => items.filter((item) => item.id !== id)), 650); }; window.addEventListener('pointerdown', handler); return () => window.removeEventListener('pointerdown', handler); }, []); return <div className="spark-layer">{sparks.map((spark) => <span key={spark.id} className="click-spark" style={{ left: spark.x, top: spark.y }}>{Array.from({ length: 8 }, (_, i) => <i key={i} style={{ '--r': `${i * 45}deg` }} />)}</span>)}</div> }
