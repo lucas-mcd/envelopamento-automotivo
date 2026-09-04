@@ -11,7 +11,7 @@ export function WorkCarousel() {
   const cylinderRef = useRef(null);
 
   useEffect(() => {
-    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800;
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!cylinderRef.current || shouldReduceMotion) return undefined;
 
     let rafId = null;
@@ -35,13 +35,13 @@ export function WorkCarousel() {
 
 export function Gallery({ onOpen }) { return <section id="galeria" className="section gallery"><div className="section-head reveal"><div><div className="section-kicker"><span>05</span><b>Arquivo visual</b></div><h2>Detalhes que<br /><em>falam alto.</em></h2></div><p>Texturas, reflexos e recortes. A matéria-prima da nossa linguagem.</p></div><div className="gallery-grid">{images.slice(2, 8).map((src, index) => <button className={`gallery-item item-${index + 1} reveal`} key={src} onClick={() => onOpen(src)}><img src={src} alt={`Detalhe de projeto ${index + 3}`} loading="lazy" /><span><Maximize2 size={16} /> ampliar</span></button>)}</div></section> }
 
-export function SecondCarousel({ onOpen, paused }) {
+export function SecondCarousel({ onOpen }) {
   const rail = [...images, ...images];
   const stripRef = useRef(null);
 
   useEffect(() => {
-    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800;
-    if (!stripRef.current || shouldReduceMotion || paused) return undefined;
+    const shouldReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!stripRef.current || shouldReduceMotion) return undefined;
 
     let rafId = null;
     let startTime = null;
@@ -59,9 +59,9 @@ export function SecondCarousel({ onOpen, paused }) {
 
     rafId = window.requestAnimationFrame(animate);
     return () => window.cancelAnimationFrame(rafId);
-  }, [paused]);
+  }, []);
 
-  return <section id="curadoria" className="marquee-section"><div className="marquee-top"><span><Sparkles size={14} /> Curadoria Arcanjo</span><b>Movimento contínuo</b></div><div className="strip-window"><div ref={stripRef} className={`strip ${paused ? 'is-paused' : ''}`}>{rail.map((src, i) => <button className="strip-card" key={`${src}-${i}`} onClick={() => onOpen(src)} aria-label={`Ampliar projeto ${(i % images.length) + 1}`}><img src={src} alt="Projeto de acabamento automotivo" loading="lazy" /></button>)}</div></div></section>;
+  return <section id="curadoria" className="marquee-section"><div className="marquee-top"><span><Sparkles size={14} /> Curadoria Arcanjo</span><b>Movimento contínuo</b></div><div className="strip-window"><div ref={stripRef} className="strip">{rail.map((src, i) => <button className="strip-card" key={`${src}-${i}`} onClick={() => onOpen(src)} aria-label={`Ampliar projeto ${(i % images.length) + 1}`}><img src={src} alt="Projeto de acabamento automotivo" loading="lazy" /></button>)}</div></div></section>;
 }
 
 export function ClickSpark() { const [sparks, setSparks] = useState([]); useEffect(() => { const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 800; if (isTouchDevice()) return undefined; const handler = (event) => { const id = Date.now() + Math.random(); setSparks((items) => [...items.slice(-12), { id, x: event.clientX, y: event.clientY }]); setTimeout(() => setSparks((items) => items.filter((item) => item.id !== id)), 650); }; window.addEventListener('pointerdown', handler); return () => window.removeEventListener('pointerdown', handler); }, []); return <div className="spark-layer">{sparks.map((spark) => <span key={spark.id} className="click-spark" style={{ left: spark.x, top: spark.y }}>{Array.from({ length: 8 }, (_, i) => <i key={i} style={{ '--r': `${i * 45}deg` }} />)}</span>)}</div> }

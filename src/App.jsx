@@ -119,7 +119,7 @@ export default function App() {
       <About go={go} />
       <Services />
       <WorkCarousel />
-      <SecondCarousel onOpen={setLightbox} paused={Boolean(lightbox)} />
+      <SecondCarousel onOpen={setLightbox} />
       <Contact />
       <ContactHub />
       <Location />
